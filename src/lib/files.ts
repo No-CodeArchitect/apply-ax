@@ -86,11 +86,19 @@ export async function saveUpload(file: File | null): Promise<UploadResult> {
 
 /** 저장된 파일의 절대 경로 (다운로드용). 디렉토리 이탈 방지. */
 export function resolveUploadPath(relPath: string): string | null {
-  const safe = path.basename(relPath); // 경로 조작 방지
-  const abs = path.join(UPLOAD_DIR, safe);
-  if (!abs.startsWith(UPLOAD_DIR)) return null;
+  const safe = path.basename(relPath); // 경로 조작 방지 (디렉토리 성분 제거)
+  const root = path.resolve(UPLOAD_DIR); // OS 구분자로 정규화
+  const abs = path.resolve(root, safe);
+  if (abs !== root && !abs.startsWith(root + path.sep)) return null;
   if (!fs.existsSync(abs)) return null;
   return abs;
+}
+
+/** 다운로드 파일명: `상호_원래파일명` (파일시스템에 안전한 형태로) */
+export function attachmentDownloadName(companyName: string, originalName: string): string {
+  const safeCompany =
+    (companyName || "").replace(/[\\/:*?"<>|]/g, "_").trim().slice(0, 40) || "기업";
+  return `${safeCompany}_${originalName}`;
 }
 
 export function deleteUpload(relPath: string): void {

@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import archiver from "archiver";
 import { getAdminSession } from "@/lib/session";
-import { querySubmissions, attachmentsFor, taskTitle } from "@/lib/adminQuery";
-import { resolveUploadPath } from "@/lib/files";
+import { querySubmissions, attachmentsFor } from "@/lib/adminQuery";
+import { resolveUploadPath, attachmentDownloadName } from "@/lib/files";
 import { logAdminActivity } from "@/lib/activity";
 
 export const runtime = "nodejs";
-
-// 파일/폴더명에 쓸 수 없는 문자를 정리
-function safe(name: string): string {
-  return name.replace(/[\\/:*?"<>|]/g, "_").slice(0, 60);
-}
 
 export async function GET(req: NextRequest) {
   const session = await getAdminSession();
@@ -29,15 +24,25 @@ export async function GET(req: NextRequest) {
     archive.on("end", () => resolve(Buffer.concat(chunks)));
 
     let added = 0;
+    const usedNames = new Set<string>();
     for (const r of rows) {
       const atts = attachmentsFor(r.id);
-      const folder = safe(`${r.id}_${taskTitle(r.task_id)}_${r.company_name}`);
       for (const a of atts) {
         const abs = resolveUploadPath(a.file_path);
-        if (abs) {
-          archive.file(abs, { name: `${folder}/${safe(a.file_type)}_${a.file_name}` });
-          added++;
+        if (!abs) continue;
+        // 파일명: 상호_원래파일명 (중복 시 _2, _3 … 로 구분)
+        let name = attachmentDownloadName(r.company_name, a.file_name);
+        if (usedNames.has(name)) {
+          const dot = name.lastIndexOf(".");
+          const stem = dot > 0 ? name.slice(0, dot) : name;
+          const ext = dot > 0 ? name.slice(dot) : "";
+          let i = 2;
+          while (usedNames.has(`${stem}_${i}${ext}`)) i++;
+          name = `${stem}_${i}${ext}`;
         }
+        usedNames.add(name);
+        archive.file(abs, { name });
+        added++;
       }
     }
     if (added === 0) {

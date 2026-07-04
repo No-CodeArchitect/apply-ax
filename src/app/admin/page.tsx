@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getAdminSession } from "@/lib/session";
-import { querySubmissions, taskCounts } from "@/lib/adminQuery";
+import { querySubmissions, taskCounts, attachmentsFor } from "@/lib/adminQuery";
 import { TASKS, taskTitle } from "@/lib/tasks";
 import { getApplicationStatus } from "@/lib/settings";
 import { formatDateTime } from "@/lib/format";
+import { formatBizRegNo } from "@/lib/validation";
 import { logAdminActivity } from "@/lib/activity";
 import AdminNav from "./AdminNav";
+import SubmissionsTable from "./SubmissionsTable";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,25 @@ export default async function AdminDashboard({
   const task = sp.task ? Number(sp.task) : null;
   const filters = { task, from: sp.from || null, to: sp.to || null };
   const rows = querySubmissions(filters);
+  const tableRows = rows.map((r) => ({
+    id: r.id,
+    taskTitle: taskTitle(r.task_id),
+    bizRegNo: formatBizRegNo(r.biz_reg_no),
+    companyName: r.company_name,
+    ceoName: r.ceo_name,
+    applicantName: r.applicant_name,
+    phone: r.phone,
+    email: r.email,
+    reason: r.reason,
+    techExperience: r.tech_experience,
+    createdAt: r.created_at,
+    attachments: attachmentsFor(r.id).map((a) => ({
+      id: a.id,
+      fileName: a.file_name,
+      fileType: a.file_type,
+      size: a.size,
+    })),
+  }));
   const counts = taskCounts();
   const total = counts[1] + counts[2] + counts[3];
   const status = getApplicationStatus();
@@ -100,54 +121,8 @@ export default async function AdminDashboard({
           <Link href="/admin" className="btn-ghost">초기화</Link>
         </form>
 
-        {/* 목록 */}
-        <div className="card mt-6 overflow-hidden">
-          <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-600">
-            접수 목록 ({rows.length}건)
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">과제</th>
-                  <th className="px-4 py-3">상호</th>
-                  <th className="px-4 py-3">대표자</th>
-                  <th className="px-4 py-3">제출자</th>
-                  <th className="px-4 py-3">연락처</th>
-                  <th className="px-4 py-3">이메일</th>
-                  <th className="px-4 py-3">제출일시</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
-                      조건에 맞는 접수 내역이 없습니다.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-slate-400">
-                        <Link href={`/admin/submissions/${r.id}`} className="font-semibold text-navy-700 hover:underline">
-                          {r.id}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">{taskTitle(r.task_id)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-700">{r.company_name}</td>
-                      <td className="px-4 py-3">{r.ceo_name}</td>
-                      <td className="px-4 py-3">{r.applicant_name}</td>
-                      <td className="px-4 py-3">{r.phone}</td>
-                      <td className="px-4 py-3">{r.email}</td>
-                      <td className="px-4 py-3 text-slate-500">{formatDateTime(r.created_at)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* 목록 (행 클릭 시 상세·첨부 펼침) */}
+        <SubmissionsTable rows={tableRows} />
 
         <p className="mt-4 text-xs text-slate-400">
           ※ 본 시스템은 접수·데이터 관리 전용입니다. 배점·순위 등 심사 기능은 제공하지 않습니다.
