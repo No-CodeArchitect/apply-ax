@@ -72,4 +72,21 @@ if (created > 0) {
   console.log("\n생성된 신규 계정이 없습니다.");
 }
 console.log("============================\n");
+
+// ── (선택) 부트스트랩 재설정 ──────────────────────────────────
+// 로그의 초기 비밀번호를 놓쳤거나 맞지 않을 때, 환경변수
+// ADMIN_BOOTSTRAP_PASSWORD 값으로 관리자 3계정 비밀번호를 일괄 재설정한다.
+// 로그인 후 강제 변경(must_change_password=1)되며, 사용 후에는 변수를 삭제하면 된다.
+const bootstrap = process.env.ADMIN_BOOTSTRAP_PASSWORD;
+if (bootstrap && bootstrap.length > 0) {
+  const hash = bcrypt.hashSync(bootstrap, 10);
+  const res = db
+    .prepare(
+      "UPDATE admins SET password_hash = ?, must_change_password = 1, updated_at = ? WHERE username IN ('admin_airi','admin_af','admin_snu')"
+    )
+    .run(hash, new Date().toISOString());
+  console.log(`[부트스트랩] ADMIN_BOOTSTRAP_PASSWORD 로 관리자 ${res.changes}개 계정의 비밀번호를 재설정했습니다.`);
+  console.log("  → 이 비밀번호로 로그인 후 즉시 변경하고, Railway Variables 에서 ADMIN_BOOTSTRAP_PASSWORD 를 삭제하세요.\n");
+}
+
 db.close();
