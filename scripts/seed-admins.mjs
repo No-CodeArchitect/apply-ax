@@ -76,17 +76,28 @@ console.log("============================\n");
 // ── (선택) 부트스트랩 재설정 ──────────────────────────────────
 // 로그의 초기 비밀번호를 놓쳤거나 맞지 않을 때, 환경변수
 // ADMIN_BOOTSTRAP_PASSWORD 값으로 관리자 3계정 비밀번호를 일괄 재설정한다.
-// 로그인 후 강제 변경(must_change_password=1)되며, 사용 후에는 변수를 삭제하면 된다.
+// ★ 동일한 값은 '1회만' 적용된다(적용 여부를 settings 에 해시로 기록).
+//   따라서 변수를 남겨둔 채 재배포해도, 관리자가 이후 바꾼 비밀번호를 덮어쓰지 않는다.
 const bootstrap = process.env.ADMIN_BOOTSTRAP_PASSWORD;
 if (bootstrap && bootstrap.length > 0) {
-  const hash = bcrypt.hashSync(bootstrap, 10);
-  const res = db
-    .prepare(
-      "UPDATE admins SET password_hash = ?, must_change_password = 1, updated_at = ? WHERE username IN ('admin_airi','admin_af','admin_snu')"
-    )
-    .run(hash, new Date().toISOString());
-  console.log(`[부트스트랩] ADMIN_BOOTSTRAP_PASSWORD 로 관리자 ${res.changes}개 계정의 비밀번호를 재설정했습니다.`);
-  console.log("  → 이 비밀번호로 로그인 후 즉시 변경하고, Railway Variables 에서 ADMIN_BOOTSTRAP_PASSWORD 를 삭제하세요.\n");
+  db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);");
+  const marker = crypto.createHash("sha256").update(bootstrap).digest("hex");
+  const prev = db.prepare("SELECT value FROM settings WHERE key = 'admin_bootstrap_applied'").get();
+  if (prev && prev.value === marker) {
+    console.log("[부트스트랩] 이미 적용된 값입니다 → 건너뜀 (관리자가 변경한 비밀번호를 유지).\n");
+  } else {
+    const hash = bcrypt.hashSync(bootstrap, 10);
+    const res = db
+      .prepare(
+        "UPDATE admins SET password_hash = ?, must_change_password = 1, updated_at = ? WHERE username IN ('admin_airi','admin_af','admin_snu')"
+      )
+      .run(hash, new Date().toISOString());
+    db.prepare(
+      "INSERT INTO settings (key, value) VALUES ('admin_bootstrap_applied', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    ).run(marker);
+    console.log(`[부트스트랩] 관리자 ${res.changes}개 계정의 비밀번호를 재설정했습니다.`);
+    console.log("  → 이 값은 1회만 적용되며, 재배포해도 다시 덮어쓰지 않습니다. 로그인 후 비밀번호를 변경하세요.\n");
+  }
 }
 
 db.close();
