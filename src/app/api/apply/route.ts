@@ -114,8 +114,9 @@ export async function POST(req: NextRequest) {
   const toCreate = tasks.filter((t) => !existingTasks.includes(t));
 
   if (toCreate.length === 0) {
+    const names = duplicated.map(taskTitle).join(", ");
     return bad(
-      "선택하신 과제는 모두 이미 접수된 과제입니다. 접수 수정 페이지에서 확인·수정해 주세요.",
+      `이미 접수하신 과제입니다: ${names}. 해당 과제는 「접수 조회·수정」에서 확인·수정할 수 있으며, 아직 접수하지 않은 다른 과제를 선택하면 신규 접수됩니다.`,
       { allDuplicated: true, duplicatedTasks: duplicated.map(taskTitle) }
     );
   }
