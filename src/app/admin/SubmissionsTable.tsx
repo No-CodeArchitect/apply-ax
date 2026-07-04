@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatDateTime } from "@/lib/format";
 import { DOC_TYPES } from "@/lib/tasks";
+import DeleteSubmissionButton from "./DeleteSubmissionButton";
 
 interface Att {
   id: number;
@@ -160,7 +161,7 @@ function RowGroup({
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 flex items-center justify-between">
               <Link
                 href={`/admin/submissions/${row.id}`}
                 className="text-xs text-navy-600 underline"
@@ -168,6 +169,10 @@ function RowGroup({
               >
                 상세 페이지 열기 →
               </Link>
+              <DeleteSubmissionButton
+                submissionId={row.id}
+                label={`접수 #${row.id} · ${row.taskTitle} · ${row.companyName}`}
+              />
             </div>
           </td>
         </tr>

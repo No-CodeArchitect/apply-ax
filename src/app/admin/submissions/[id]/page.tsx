@@ -8,6 +8,7 @@ import { formatBizRegNo } from "@/lib/validation";
 import { formatDateTime } from "@/lib/format";
 import { logAdminActivity } from "@/lib/activity";
 import AdminNav from "../../AdminNav";
+import DeleteSubmissionButton from "../../DeleteSubmissionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,16 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
         <div className="mb-4 text-sm text-slate-500">
           <Link href="/admin" className="underline">대시보드</Link> · 접수 상세
         </div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-navy-800">접수 #{sub.id}</h1>
-          <span className="badge bg-navy-100 text-navy-700">{taskTitle(sub.task_id)}</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-navy-800">접수 #{sub.id}</h1>
+            <span className="badge bg-navy-100 text-navy-700">{taskTitle(sub.task_id)}</span>
+          </div>
+          <DeleteSubmissionButton
+            submissionId={sub.id}
+            label={`접수 #${sub.id} · ${taskTitle(sub.task_id)} · ${sub.company_name}`}
+            redirectTo="/admin"
+          />
         </div>
         <p className="mt-1 text-sm text-slate-500">
           제출 {formatDateTime(sub.created_at)} · 최종수정 {formatDateTime(sub.updated_at)} · 수정이력 {historyCount}회
