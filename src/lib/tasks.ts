@@ -49,5 +49,4 @@ export interface DocType {
 export const DOC_TYPES: DocType[] = [
   { key: "proposal", label: "제안서", required: true },
   { key: "biz_license", label: "사업자등록증", required: true },
-  { key: "track_record", label: "실적증명서", required: false },
 ];
