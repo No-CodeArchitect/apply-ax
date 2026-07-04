@@ -16,7 +16,7 @@ function BrandLogo() {
         AX
       </div>
       <div className="leading-tight">
-        <div className="text-sm font-bold text-navy-800">공군 AX 협력센터</div>
+        <div className="text-sm font-bold text-navy-800">서울대-공군 AX 협력센터</div>
         <div className="text-[11px] text-slate-500">서울대학교 산학협력단</div>
       </div>
     </div>
@@ -45,13 +45,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="mt-16 border-t border-slate-200 bg-white">
           <div className="container-page py-8 text-xs leading-relaxed text-slate-500">
             <p className="font-semibold text-slate-600">
-              공군 AX 거점 · 서울대학교 공군 AX 협력센터
+              서울대·공군 AX 협력센터
             </p>
             <p className="mt-1">
               본 사이트는 2026년 민군협력 AI 연구개발사업 참여기업(공동연구개발기관) 접수 전용입니다.
             </p>
             <p className="mt-3 text-slate-400">
-              © 2026 Seoul National University Industry Foundation. All rights reserved.
+              © Artificial Intelligence Research Institute. All rights reserved.
             </p>
           </div>
         </footer>
