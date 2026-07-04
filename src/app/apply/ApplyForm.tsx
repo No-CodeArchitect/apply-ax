@@ -211,7 +211,8 @@ export default function ApplyForm({ guides }: { guides: Guide[] }) {
         </div>
         <h2 className="text-xl font-bold text-navy-800">접수가 완료되었습니다</h2>
         <p className="mt-2 text-sm text-slate-600">
-          입력하신 이메일({f.email})로 접수 완료 안내를 발송했습니다.
+          아래 접수번호로 정상 접수되었습니다. 접수 내용은 「접수 조회·수정」에서 사업자등록번호와
+          비밀번호로 확인·수정하실 수 있습니다.
         </p>
         <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm">
           <div className="font-semibold text-slate-700">접수된 과제</div>

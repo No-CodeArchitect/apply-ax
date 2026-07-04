@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node scripts/seed-admins.mjs"
+    "seed": "node scripts/seed-admins.mjs",
+    "reset-data": "node scripts/reset-data.mjs"
   },
   "dependencies": {
     "archiver": "^7.0.1",

@@ -44,24 +44,6 @@ const shell = (title: string, body: string) => `
     </div>
   </div>`;
 
-export async function sendSubmissionConfirmation(opts: {
-  to: string;
-  companyName: string;
-  taskTitles: string[];
-  submittedAt: string;
-}) {
-  const list = opts.taskTitles.map((t) => `<li>${t}</li>`).join("");
-  const html = shell(
-    "접수가 정상적으로 완료되었습니다",
-    `<p><strong>${opts.companyName}</strong> 님, 아래 과제에 대한 접수가 완료되었습니다.</p>
-     <ul>${list}</ul>
-     <p>제출일시: <strong>${opts.submittedAt}</strong></p>
-     <p>접수 내용은 <a href="${process.env.APP_BASE_URL || ""}/lookup">접수 조회·수정</a> 페이지에서
-     사업자등록번호와 비밀번호로 확인·수정하실 수 있습니다.</p>`
-  );
-  await sendMail(opts.to, "[공군 AX] 참여기업 모집 접수 완료 안내", html);
-}
-
 export async function sendPasswordReset(opts: { to: string; link: string }) {
   const html = shell(
     "비밀번호 재설정 안내",

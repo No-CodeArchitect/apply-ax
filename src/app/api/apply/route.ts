@@ -17,8 +17,6 @@ import {
   passwordIssue,
   requireText,
 } from "@/lib/validation";
-import { sendSubmissionConfirmation } from "@/lib/email";
-import { formatDateTime } from "@/lib/format";
 import { setApplicantSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -206,18 +204,6 @@ export async function POST(req: NextRequest) {
 
   // 인증 세션 부여 (접수 직후 조회/수정 편의)
   await setApplicantSession({ companyId: company.id, bizRegNo });
-
-  // 접수 완료 메일 (실패해도 접수는 성립)
-  try {
-    await sendSubmissionConfirmation({
-      to: email,
-      companyName,
-      taskTitles: toCreate.map(taskTitle),
-      submittedAt: formatDateTime(now),
-    });
-  } catch (e) {
-    console.error("확인 메일 발송 실패:", e);
-  }
 
   return NextResponse.json({
     ok: true,
