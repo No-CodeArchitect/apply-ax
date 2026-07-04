@@ -33,7 +33,7 @@ export default function HomePage() {
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-navy-100 sm:text-base">
             서울대학교 산학협력단(공군 AX 협력센터)이 3개 거점 연구과제의 공동연구개발기관을
-            모집합니다. 복수 과제 지원이 가능합니다.
+            모집합니다.
           </p>
           <div className="mt-6 rounded-lg bg-navy-900/50 p-4 text-sm">
             <span className="text-navy-200">접수 기간</span>
