@@ -35,9 +35,9 @@ export default function HomePage() {
             서울대학교 산학협력단(공군 AX 협력센터)이 3개 거점 연구과제의 공동연구개발기관을
             모집합니다.
           </p>
-          <div className="mt-6 rounded-lg bg-navy-900/50 p-4 text-sm">
-            <span className="text-navy-200">접수 기간</span>
-            <span className="ml-3 font-semibold">
+          <div className="mt-6 inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-navy-900/50 px-5 py-4">
+            <span className="text-xs font-medium text-navy-200">접수 기간</span>
+            <span className="text-base font-bold">
               {formatDateTime(window.start)} ~ {formatDateTime(window.end)}
             </span>
           </div>
@@ -46,6 +46,13 @@ export default function HomePage() {
             <Link href="/lookup" className="btn-outline bg-transparent text-white border-white/40 hover:bg-white/10">
               접수 조회·수정
             </Link>
+            <a
+              href="/recruitment-notice.pdf"
+              download="공동연구개발기관(참여기업) 모집 공고.pdf"
+              className="btn-outline bg-transparent text-white border-white/40 hover:bg-white/10"
+            >
+              ⬇ 공고문(RFP) 다운로드
+            </a>
           </div>
         </div>
       </section>
@@ -76,8 +83,18 @@ export default function HomePage() {
               <li>「신청하기」에서 지원 과제를 선택합니다.</li>
               <li>기업 정보 및 제안서·사업자등록증 등 서류를 첨부합니다.</li>
               <li>사업자등록번호 단위로 비밀번호를 설정하여 제출합니다.</li>
-              <li>제출 후 이메일로 접수 완료 안내를 받습니다.</li>
+              <li>제출 후 화면에 표시되는 접수번호를 확인합니다.</li>
             </ol>
+            <p className="mt-4 text-sm text-slate-500">
+              세부 자격·제출서류·평가 등은 공고문을 확인해 주세요.
+            </p>
+            <a
+              href="/recruitment-notice.pdf"
+              download="공동연구개발기관(참여기업) 모집 공고.pdf"
+              className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-navy-700 hover:underline"
+            >
+              ⬇ 공고문(RFP) 다운로드 (PDF)
+            </a>
           </div>
           <div className="card p-6">
             <h3 className="text-base font-semibold text-navy-800">조회 및 수정</h3>
