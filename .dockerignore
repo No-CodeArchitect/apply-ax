@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+data
+uploads
+*.md
+.env
+.env.local
+.env*.local
+npm-debug.log*
+.DS_Store
+.vscode
+.idea

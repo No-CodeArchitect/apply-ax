@@ -9,7 +9,7 @@ import crypto from "node:crypto";
 import path from "node:path";
 import fs from "node:fs";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const db = new Database(path.join(DATA_DIR, "apply-ax.db"));
 db.pragma("journal_mode = WAL");

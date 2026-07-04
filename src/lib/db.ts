@@ -8,7 +8,8 @@ import fs from "node:fs";
 // globalThis 에 캐시한다.
 // ─────────────────────────────────────────────────────────────
 
-const DATA_DIR = path.join(process.cwd(), "data");
+// DATA_DIR 환경변수가 있으면 그 경로에 DB를 둔다 (Railway 볼륨 등 영구 디스크용).
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "apply-ax.db");
 
 if (!fs.existsSync(DATA_DIR)) {

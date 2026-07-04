@@ -4,7 +4,8 @@ import crypto from "node:crypto";
 
 // 업로드 파일 저장 및 검증. DB 에는 경로만 저장하며, 추후 S3 등으로 교체하기 쉽도록
 // 저장 로직을 이 모듈에 격리한다.
-const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+// UPLOAD_DIR 환경변수가 있으면 그 경로에 업로드 파일을 저장한다 (영구 디스크용).
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
 export const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20MB
 
 const ALLOWED_EXT = ["pdf", "hwp", "hwpx", "doc", "docx"] as const;
