@@ -138,20 +138,26 @@ export async function POST(req: NextRequest) {
   type PlannedAtt = StoredFile & { file_type: string };
   const plan: { taskId: number; atts: PlannedAtt[] }[] = [];
   const savedPaths: string[] = [];
-  for (const t of toCreate) {
-    const atts: PlannedAtt[] = [];
-    for (const dt of DOC_TYPES) {
-      const file = filesByType[dt.key];
-      if (!file) continue;
-      const r = await saveUpload(file);
-      if (!r.ok || !r.stored) {
-        savedPaths.forEach(deleteUpload); // 실패 시 이미 저장한 파일 정리
-        return bad(r.error || "파일 저장 중 오류가 발생했습니다.");
+  try {
+    for (const t of toCreate) {
+      const atts: PlannedAtt[] = [];
+      for (const dt of DOC_TYPES) {
+        const file = filesByType[dt.key];
+        if (!file) continue;
+        const r = await saveUpload(file);
+        if (!r.ok || !r.stored) {
+          savedPaths.forEach(deleteUpload); // 실패 시 이미 저장한 파일 정리
+          return bad(r.error || "파일 저장 중 오류가 발생했습니다.");
+        }
+        atts.push({ ...r.stored, file_type: dt.key });
+        savedPaths.push(r.stored.file_path);
       }
-      atts.push({ ...r.stored, file_type: dt.key });
-      savedPaths.push(r.stored.file_path);
+      plan.push({ taskId: t, atts });
     }
-    plan.push({ taskId: t, atts });
+  } catch (e) {
+    savedPaths.forEach(deleteUpload);
+    console.error("파일 저장 실패:", (e as Error)?.message, e);
+    return bad("첨부파일 저장 중 오류가 발생했습니다. 파일을 확인 후 다시 시도해 주세요.", {}, 500);
   }
 
   // ── 동기 트랜잭션: submission + attachments 일괄 생성 ──────
@@ -194,7 +200,7 @@ export async function POST(req: NextRequest) {
     runTx();
   } catch (e) {
     savedPaths.forEach(deleteUpload); // 롤백 시 저장 파일도 제거
-    console.error("접수 트랜잭션 실패:", e);
+    console.error("접수 트랜잭션 실패:", (e as Error)?.message, e);
     return bad("접수 처리 중 오류가 발생했습니다.", {}, 500);
   }
 

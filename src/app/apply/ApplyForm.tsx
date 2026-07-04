@@ -13,6 +13,9 @@ import {
 } from "@/lib/validation";
 import { postForm } from "@/lib/client";
 
+const MAX_FILE_MB = 20;
+const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
 interface Guide {
   id: number;
   title: string;
@@ -58,6 +61,7 @@ export default function ApplyForm({ guides }: { guides: Guide[] }) {
   const [passwordConfirm, setPasswordConfirm] = useState("");
 
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -95,6 +99,24 @@ export default function ApplyForm({ guides }: { guides: Guide[] }) {
 
   const toggleTask = (id: number) =>
     setTasks((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+
+  // 파일 선택 즉시 20MB 초과 검사 → 초과 시 안내하고 선택을 취소한다.
+  function onFileChange(key: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_FILE_BYTES) {
+      setFileErrors((p) => ({
+        ...p,
+        [key]: `파일 용량이 ${MAX_FILE_MB}MB를 초과합니다 (${(file.size / 1024 / 1024).toFixed(1)}MB). 더 작은 파일을 첨부해 주세요.`,
+      }));
+      e.target.value = ""; // 초과 파일은 선택 해제
+    } else {
+      setFileErrors((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+    }
+  }
 
   // 2단계 입력값 검증
   const errors = useMemo(() => {
@@ -142,6 +164,15 @@ export default function ApplyForm({ guides }: { guides: Guide[] }) {
       setServerError("입력 내용을 다시 확인해 주세요.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
+    }
+    // 20MB 초과 파일 최종 확인 (선택 직후 걸러지지만 안전장치)
+    for (const dt of DOC_TYPES) {
+      const file = fileRefs.current[dt.key]?.files?.[0];
+      if (file && file.size > MAX_FILE_BYTES) {
+        setServerError(`${dt.label} 파일이 ${MAX_FILE_MB}MB를 초과합니다. 더 작은 파일을 첨부해 주세요.`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
     }
     const fd = new FormData();
     tasks.forEach((t) => fd.append("tasks", String(t)));
@@ -388,10 +419,13 @@ export default function ApplyForm({ guides }: { guides: Guide[] }) {
                 }}
                 type="file"
                 accept=".pdf,.hwp,.hwpx,.doc,.docx"
+                onChange={(e) => onFileChange(dt.key, e)}
                 className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-md file:border-0 file:bg-navy-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-navy-700 hover:file:bg-navy-200"
               />
+              {fileErrors[dt.key] && <p className="field-error">{fileErrors[dt.key]}</p>}
             </div>
           ))}
+          <p className="text-xs text-slate-400">※ 파일당 최대 {MAX_FILE_MB}MB 까지 첨부할 수 있습니다.</p>
         </div>
       </section>
 

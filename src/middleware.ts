@@ -42,6 +42,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // 정적 자산/이미지/파비콘 제외한 모든 경로
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|logos|.*\\.(?:png|jpg|jpeg|svg|ico)).*)"],
+  // 정적 자산/이미지/파비콘 + API 경로 제외.
+  // ★ /api 를 제외해야 미들웨어의 요청 본문 버퍼 제한(기본 10MB)이 걸리지 않아
+  //   대용량 첨부 업로드(/api/apply)가 정상 처리된다. (CSRF 쿠키는 페이지 방문 시 이미 발급됨)
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|logos|.*\\.(?:png|jpg|jpeg|svg|ico)).*)"],
 };

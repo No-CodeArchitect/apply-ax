@@ -68,16 +68,20 @@ export async function saveUpload(file: File | null): Promise<UploadResult> {
     return { ok: false, error: `파일 내용이 확장자와 일치하지 않습니다(위조 의심): ${file.name}` };
   }
 
-  if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-  const rand = crypto.randomBytes(12).toString("hex");
-  const storedName = `${Date.now()}_${rand}.${extension}`;
-  const abs = path.join(UPLOAD_DIR, storedName);
-  await fs.promises.writeFile(abs, buf);
-
-  return {
-    ok: true,
-    stored: { file_name: file.name, file_path: storedName, size: file.size },
-  };
+  try {
+    if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    const rand = crypto.randomBytes(12).toString("hex");
+    const storedName = `${Date.now()}_${rand}.${extension}`;
+    const abs = path.join(UPLOAD_DIR, storedName);
+    await fs.promises.writeFile(abs, buf);
+    return {
+      ok: true,
+      stored: { file_name: file.name, file_path: storedName, size: file.size },
+    };
+  } catch (e) {
+    console.error("[files] 저장 실패:", UPLOAD_DIR, (e as Error).message);
+    return { ok: false, error: "첨부파일을 서버에 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  }
 }
 
 /** 저장된 파일의 절대 경로 (다운로드용). 디렉토리 이탈 방지. */
