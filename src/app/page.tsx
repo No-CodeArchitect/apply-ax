@@ -81,7 +81,7 @@ export default function HomePage() {
             <h3 className="text-base font-semibold text-navy-800">접수 방법</h3>
             <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-slate-600">
               <li>「신청하기」에서 지원 과제를 선택합니다.</li>
-              <li>기업 정보 및 제안서·사업자등록증 등 서류를 첨부합니다.</li>
+              <li>기업 정보 및 연구개발계획서·회사소개자료 등 서류를 첨부합니다.</li>
               <li>사업자등록번호 단위로 비밀번호를 설정하여 제출합니다.</li>
               <li>제출 후 화면에 표시되는 접수번호를 확인합니다.</li>
             </ol>

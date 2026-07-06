@@ -120,9 +120,9 @@ function migrate(db: Database.Database) {
   const defaults: Record<string, string> = {
     application_start_at: "2026-07-06T00:00:00+09:00",
     application_end_at: "2026-07-17T23:59:59+09:00",
-    task1_guide: "AI 기반 ADTO 전투계획 작성 모델 — 제안서, 사업자등록증, 실적증명서를 첨부해 주세요.",
-    task2_guide: "AI 기반 이동표적(TEL) 위치추적 모델 — 제안서, 사업자등록증, 실적증명서를 첨부해 주세요.",
-    task3_guide: "AI 기반 표적 자동식별 모델 — 제안서, 사업자등록증, 실적증명서를 첨부해 주세요.",
+    task1_guide: "AI 기반 ADTO 전투계획 작성 모델 — 연구개발계획서, 회사소개자료(사업자등록증 포함)를 첨부해 주세요.",
+    task2_guide: "AI 기반 이동표적(TEL) 위치추적 모델 — 연구개발계획서, 회사소개자료(사업자등록증 포함)를 첨부해 주세요.",
+    task3_guide: "AI 기반 표적 자동식별 모델 — 연구개발계획서, 회사소개자료(사업자등록증 포함)를 첨부해 주세요.",
   };
   const insertSetting = db.prepare(
     "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
