@@ -7,6 +7,7 @@ import { getApplicationStatus } from "@/lib/settings";
 import { formatDateTime } from "@/lib/format";
 import { formatBizRegNo } from "@/lib/validation";
 import { logAdminActivity } from "@/lib/activity";
+import { canAccessEvaluation } from "@/lib/admin";
 import AdminNav from "./AdminNav";
 import SubmissionsTable from "./SubmissionsTable";
 
@@ -64,7 +65,7 @@ export default async function AdminDashboard({
 
   return (
     <div>
-      <AdminNav orgLabel={session.orgLabel} username={session.username} />
+      <AdminNav orgLabel={session.orgLabel} username={session.username} canEval={canAccessEvaluation(session.username)} />
       <div className="container-page py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

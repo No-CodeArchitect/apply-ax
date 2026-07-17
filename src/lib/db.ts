@@ -114,7 +114,75 @@ function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_submissions_biz ON submissions (biz_reg_no);
     CREATE INDEX IF NOT EXISTS idx_submissions_task ON submissions (task_id);
     CREATE INDEX IF NOT EXISTS idx_attachments_sub ON attachments (submission_id);
+
+    -- ── 평가 모듈 신규 테이블 ──────────────────────────────────
+
+    CREATE TABLE IF NOT EXISTS reviewers (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      name              TEXT NOT NULL,
+      affiliation_group TEXT NOT NULL,
+      org               TEXT,
+      title             TEXT,
+      email             TEXT UNIQUE,
+      phone             TEXT,
+      created_at        TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS reviewer_tokens (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      reviewer_id       INTEGER NOT NULL REFERENCES reviewers(id),
+      token             TEXT NOT NULL UNIQUE,
+      expires_at        TEXT NOT NULL,
+      used              INTEGER NOT NULL DEFAULT 0,
+      created_at        TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_reviewer_tokens_token ON reviewer_tokens(token);
+
+    CREATE TABLE IF NOT EXISTS evaluation_criteria (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      code              TEXT NOT NULL UNIQUE,
+      label             TEXT NOT NULL,
+      max_score         INTEGER NOT NULL,
+      sort_order        INTEGER NOT NULL,
+      description       TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS evaluations (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      reviewer_id       INTEGER NOT NULL REFERENCES reviewers(id),
+      submission_id     INTEGER NOT NULL REFERENCES submissions(id),
+      criteria_id       INTEGER NOT NULL REFERENCES evaluation_criteria(id),
+      score             INTEGER,
+      updated_at        TEXT NOT NULL,
+      UNIQUE(reviewer_id, submission_id, criteria_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_evaluations_reviewer ON evaluations(reviewer_id);
+    CREATE INDEX IF NOT EXISTS idx_evaluations_submission ON evaluations(submission_id);
+
+    CREATE TABLE IF NOT EXISTS evaluation_submits (
+      reviewer_id       INTEGER NOT NULL REFERENCES reviewers(id),
+      submission_id     INTEGER NOT NULL REFERENCES submissions(id),
+      is_final          INTEGER NOT NULL DEFAULT 0,
+      submitted_at      TEXT,
+      comment           TEXT,
+      unlocked_at       TEXT,
+      unlocked_by       TEXT,
+      PRIMARY KEY (reviewer_id, submission_id)
+    );
   `);
+
+  // 평가 항목 시드 (5개, 합계 100점)
+  const criteriaDefaults = [
+    { code: "tech", label: "기술 역량 및 접근방법", max_score: 35, sort_order: 1 },
+    { code: "capability", label: "수행 역량", max_score: 35, sort_order: 2 },
+    { code: "security", label: "보안 및 관리체계", max_score: 10, sort_order: 3 },
+    { code: "execution", label: "사업추진체계", max_score: 10, sort_order: 4 },
+    { code: "scalability", label: "사업화 가능성", max_score: 10, sort_order: 5 },
+  ];
+  const insertCriteria = db.prepare(
+    "INSERT OR IGNORE INTO evaluation_criteria (code, label, max_score, sort_order) VALUES (?, ?, ?, ?)"
+  );
+  for (const c of criteriaDefaults) insertCriteria.run(c.code, c.label, c.max_score, c.sort_order);
 
   // 기본 설정값 삽입 (없을 때만)
   const defaults: Record<string, string> = {

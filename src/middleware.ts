@@ -4,6 +4,7 @@ import { verifyToken } from "./lib/auth";
 
 const CSRF_COOKIE = "ax_csrf";
 const ADMIN_COOKIE = "ax_admin_session";
+const REVIEWER_COOKIE = "ax_reviewer_session";
 
 function randomToken(): string {
   const bytes = new Uint8Array(24);
@@ -23,6 +24,20 @@ export async function middleware(req: NextRequest) {
     if (!session || session.kind !== "admin") {
       const url = req.nextUrl.clone();
       url.pathname = "/admin/login";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ── 심사위원 평가 경로 보호 ────────────────────────────────
+  const isEvalArea = pathname.startsWith("/evaluate");
+  const isEvalEntry = pathname === "/evaluate" && req.nextUrl.searchParams.has("token");
+  if (isEvalArea && !isEvalEntry) {
+    const token = req.cookies.get(REVIEWER_COOKIE)?.value;
+    const session = token ? await verifyToken<{ kind?: string }>(token) : null;
+    if (!session || session.kind !== "reviewer") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/evaluate";
       url.search = "";
       return NextResponse.redirect(url);
     }

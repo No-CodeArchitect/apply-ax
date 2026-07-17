@@ -7,6 +7,7 @@ import { taskTitle, DOC_TYPES } from "@/lib/tasks";
 import { formatBizRegNo } from "@/lib/validation";
 import { formatDateTime } from "@/lib/format";
 import { logAdminActivity } from "@/lib/activity";
+import { canAccessEvaluation } from "@/lib/admin";
 import AdminNav from "../../AdminNav";
 import DeleteSubmissionButton from "../../DeleteSubmissionButton";
 
@@ -48,7 +49,7 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <AdminNav orgLabel={session.orgLabel} username={session.username} />
+      <AdminNav orgLabel={session.orgLabel} username={session.username} canEval={canAccessEvaluation(session.username)} />
       <div className="container-page py-8">
         <div className="mb-4 text-sm text-slate-500">
           <Link href="/admin" className="underline">대시보드</Link> · 접수 상세

@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-admins.mjs",
+    "seed:eval": "node scripts/seed-evaluation.mjs",
     "reset-data": "node scripts/reset-data.mjs"
   },
   "dependencies": {

@@ -39,3 +39,9 @@ export function setAdminPassword(adminId: number, password: string): void {
 export async function requireAdmin(): Promise<AdminSession | null> {
   return getAdminSession();
 }
+
+const EVAL_ADMIN_USERNAMES = ["admin_airi", "admin_snu"];
+
+export function canAccessEvaluation(username: string): boolean {
+  return EVAL_ADMIN_USERNAMES.includes(username);
+}
