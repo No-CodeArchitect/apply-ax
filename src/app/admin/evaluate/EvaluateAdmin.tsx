@@ -340,6 +340,17 @@ function ReviewersPanel() {
   const [reviewers, setReviewers] = useState<ReviewerInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formMsg, setFormMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    affiliationGroup: "snu",
+    org: "",
+    title: "",
+    email: "",
+    phone: "",
+  });
 
   function load() {
     fetch("/api/admin/evaluate/reviewers")
@@ -361,10 +372,121 @@ function ReviewersPanel() {
     });
   }
 
+  async function handleAdd() {
+    if (!form.name.trim()) {
+      setFormMsg({ type: "err", text: "이름은 필수입니다." });
+      return;
+    }
+    setSaving(true);
+    setFormMsg(null);
+    const res = await fetch("/api/admin/evaluate/reviewers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (data.ok) {
+      setFormMsg({ type: "ok", text: `${form.name} 위원이 추가되었습니다.` });
+      setForm({ name: "", affiliationGroup: "snu", org: "", title: "", email: "", phone: "" });
+      setShowForm(false);
+      load();
+    } else {
+      setFormMsg({ type: "err", text: data.message || "추가에 실패했습니다." });
+    }
+  }
+
   if (loading) return <Loading />;
 
   return (
     <div>
+      {formMsg && (
+        <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
+          formMsg.type === "ok"
+            ? "border-green-200 bg-green-50 text-green-800"
+            : "border-red-200 bg-red-50 text-red-800"
+        }`}>
+          {formMsg.text}
+        </div>
+      )}
+
+      <div className="mb-4 flex justify-end">
+        <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm">
+          {showForm ? "취소" : "+ 위원 추가"}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="card mb-6 p-5">
+          <h3 className="text-sm font-bold text-navy-800">새 심사위원 추가</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label">이름 *</label>
+              <input
+                className="input"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="홍길동"
+              />
+            </div>
+            <div>
+              <label className="label">소속 구분 *</label>
+              <select
+                className="input"
+                value={form.affiliationGroup}
+                onChange={(e) => setForm({ ...form, affiliationGroup: e.target.value })}
+              >
+                <option value="snu">서울대</option>
+                <option value="airforce">공군</option>
+                <option value="aihub">AI허브</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">소속 기관</label>
+              <input
+                className="input"
+                value={form.org}
+                onChange={(e) => setForm({ ...form, org: e.target.value })}
+                placeholder="서울대학교 OO학과"
+              />
+            </div>
+            <div>
+              <label className="label">직함</label>
+              <input
+                className="input"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="교수"
+              />
+            </div>
+            <div>
+              <label className="label">이메일</label>
+              <input
+                className="input"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="name@example.com"
+              />
+            </div>
+            <div>
+              <label className="label">연락처</label>
+              <input
+                className="input"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="010-0000-0000"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button onClick={handleAdd} disabled={saving} className="btn-primary">
+              {saving ? "추가 중..." : "위원 추가 및 매직링크 생성"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -377,30 +499,38 @@ function ReviewersPanel() {
             </tr>
           </thead>
           <tbody>
-            {reviewers.map((r) => (
-              <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-3 py-2.5 font-medium text-navy-800">{r.name}</td>
-                <td className="px-3 py-2.5">
-                  <span className="badge bg-slate-100 text-slate-600">
-                    {groupLabel[r.affiliation_group] || r.affiliation_group}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5 text-slate-600">{r.org || "-"}</td>
-                <td className="px-3 py-2.5 text-slate-600">{r.email || "-"}</td>
-                <td className="px-3 py-2.5">
-                  {r.magicLink ? (
-                    <button
-                      onClick={() => copyLink(r)}
-                      className="btn-outline text-xs"
-                    >
-                      {copiedId === r.id ? "복사됨!" : "링크 복사"}
-                    </button>
-                  ) : (
-                    <span className="text-xs text-slate-400">미발급</span>
-                  )}
+            {reviewers.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-3 py-8 text-center text-sm text-slate-400">
+                  등록된 심사위원이 없습니다. 위원을 추가해 주세요.
                 </td>
               </tr>
-            ))}
+            ) : (
+              reviewers.map((r) => (
+                <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-3 py-2.5 font-medium text-navy-800">{r.name}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="badge bg-slate-100 text-slate-600">
+                      {groupLabel[r.affiliation_group] || r.affiliation_group}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-slate-600">{r.org || "-"}</td>
+                  <td className="px-3 py-2.5 text-slate-600">{r.email || "-"}</td>
+                  <td className="px-3 py-2.5">
+                    {r.magicLink ? (
+                      <button
+                        onClick={() => copyLink(r)}
+                        className="btn-outline text-xs"
+                      >
+                        {copiedId === r.id ? "복사됨!" : "링크 복사"}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-400">미발급</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
