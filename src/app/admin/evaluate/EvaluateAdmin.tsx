@@ -372,6 +372,18 @@ function ReviewersPanel() {
     });
   }
 
+  async function handleDelete(r: ReviewerInfo) {
+    if (!confirm(`${r.name} 위원을 삭제하시겠습니까?\n해당 위원의 모든 평가 데이터도 함께 삭제됩니다.`)) return;
+    const res = await fetch(`/api/admin/evaluate/reviewers?id=${r.id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (data.ok) {
+      setFormMsg({ type: "ok", text: `${r.name} 위원이 삭제되었습니다.` });
+      load();
+    } else {
+      setFormMsg({ type: "err", text: data.message || "삭제에 실패했습니다." });
+    }
+  }
+
   async function handleAdd() {
     if (!form.name.trim()) {
       setFormMsg({ type: "err", text: "이름은 필수입니다." });
@@ -496,12 +508,13 @@ function ReviewersPanel() {
               <th className="px-3 py-2 font-semibold text-slate-600">기관</th>
               <th className="px-3 py-2 font-semibold text-slate-600">이메일</th>
               <th className="px-3 py-2 font-semibold text-slate-600">매직링크</th>
+              <th className="px-3 py-2 font-semibold text-slate-600"></th>
             </tr>
           </thead>
           <tbody>
             {reviewers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-8 text-center text-sm text-slate-400">
+                <td colSpan={6} className="px-3 py-8 text-center text-sm text-slate-400">
                   등록된 심사위원이 없습니다. 위원을 추가해 주세요.
                 </td>
               </tr>
@@ -527,6 +540,14 @@ function ReviewersPanel() {
                     ) : (
                       <span className="text-xs text-slate-400">미발급</span>
                     )}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <button
+                      onClick={() => handleDelete(r)}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))

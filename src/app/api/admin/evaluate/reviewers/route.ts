@@ -82,3 +82,30 @@ export async function POST(req: NextRequest) {
     reviewer: { id: reviewerId, name, magicLink: `/evaluate?token=${token}` },
   });
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!canAccessEvaluation(session.username)) return NextResponse.json({ ok: false }, { status: 403 });
+
+  const id = Number(req.nextUrl.searchParams.get("id"));
+  if (!id) return NextResponse.json({ ok: false, message: "id가 필요합니다." }, { status: 400 });
+
+  const db = getDb();
+  const reviewer = db.prepare("SELECT name FROM reviewers WHERE id = ?").get(id) as { name: string } | undefined;
+  if (!reviewer) return NextResponse.json({ ok: false, message: "위원을 찾을 수 없습니다." }, { status: 404 });
+
+  db.prepare("DELETE FROM evaluation_submits WHERE reviewer_id = ?").run(id);
+  db.prepare("DELETE FROM evaluations WHERE reviewer_id = ?").run(id);
+  db.prepare("DELETE FROM reviewer_tokens WHERE reviewer_id = ?").run(id);
+  db.prepare("DELETE FROM reviewers WHERE id = ?").run(id);
+
+  logAdminActivity({
+    adminId: session.adminId,
+    username: session.username,
+    action: "delete_reviewer",
+    detail: `${reviewer.name} (id=${id})`,
+  });
+
+  return NextResponse.json({ ok: true });
+}
