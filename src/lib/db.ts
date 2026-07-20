@@ -159,6 +159,13 @@ function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_evaluations_reviewer ON evaluations(reviewer_id);
     CREATE INDEX IF NOT EXISTS idx_evaluations_submission ON evaluations(submission_id);
 
+    CREATE TABLE IF NOT EXISTS reviewer_nda (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      reviewer_id INTEGER NOT NULL REFERENCES reviewers(id),
+      agreed_at   TEXT NOT NULL,
+      UNIQUE(reviewer_id)
+    );
+
     CREATE TABLE IF NOT EXISTS evaluation_submits (
       reviewer_id       INTEGER NOT NULL REFERENCES reviewers(id),
       submission_id     INTEGER NOT NULL REFERENCES submissions(id),

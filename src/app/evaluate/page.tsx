@@ -15,6 +15,13 @@ const GROUP_LABEL: Record<string, string> = {
   aihub: "AI허브",
 };
 
+const NDA_ITEMS = [
+  "본 평가와 관련하여 취득한 모든 정보(제안서, 발표 내용, 평가 점수 등)를 외부에 누설하지 않겠습니다.",
+  "평가 대상 업체의 기술 정보, 사업 계획 등 영업 비밀에 해당하는 정보를 부당하게 사용하지 않겠습니다.",
+  "개인적 이해관계를 배제하고 공정하고 객관적으로 평가하겠습니다.",
+  "위 서약을 위반하여 발생하는 모든 법적 책임을 부담할 것을 확인합니다.",
+];
+
 function EvaluateEntry() {
   const params = useSearchParams();
   const router = useRouter();
@@ -24,6 +31,7 @@ function EvaluateEntry() {
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [reviewer, setReviewer] = useState<ReviewerInfo | null>(null);
+  const [nda, setNda] = useState([false, false, false, false]);
 
   useEffect(() => {
     if (!token) return;
@@ -51,7 +59,7 @@ function EvaluateEntry() {
       const res = await fetch("/api/evaluate/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, ndaAgreed: true }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -124,16 +132,39 @@ function EvaluateEntry() {
             </dl>
           </div>
 
-          <p className="mt-5 text-center text-sm text-slate-600">
-            위 정보가 본인이 맞으시면 아래 버튼을 눌러 평가를 시작해 주세요.
-          </p>
+          <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5">
+            <h2 className="text-sm font-bold text-amber-900">
+              비밀유지 및 공정평가 서약
+            </h2>
+            <p className="mt-1 text-xs text-amber-700">
+              평가를 시작하기 전에 아래 항목을 모두 확인하고 동의해 주세요.
+            </p>
+
+            <ul className="mt-4 space-y-3">
+              {NDA_ITEMS.map((item, i) => (
+                <li key={i}>
+                  <label className="flex cursor-pointer gap-3 text-sm leading-relaxed text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={nda[i]}
+                      onChange={() =>
+                        setNda((prev) => prev.map((v, j) => (j === i ? !v : v)))
+                      }
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-navy-700"
+                    />
+                    <span>{item}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <button
             onClick={handleConfirm}
-            disabled={confirming}
-            className="btn-primary mt-5 w-full"
+            disabled={confirming || !nda.every(Boolean)}
+            className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {confirming ? "접속 중..." : "본인이 맞습니다 — 평가 시작"}
+            {confirming ? "접속 중..." : "위 사항에 동의하며 평가를 시작합니다"}
           </button>
 
           <p className="mt-4 text-center text-xs text-slate-400">

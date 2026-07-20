@@ -57,6 +57,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, message: "만료된 링크입니다. 관리자에게 재발급을 요청하세요." }, { status: 401 });
   }
 
+  if (body.ndaAgreed) {
+    getDb()
+      .prepare(
+        `INSERT OR REPLACE INTO reviewer_nda (reviewer_id, agreed_at) VALUES (?, ?)`
+      )
+      .run(row.reviewer_id, new Date().toISOString());
+  }
+
   await setReviewerSession({
     reviewerId: row.reviewer_id,
     name: row.name,
