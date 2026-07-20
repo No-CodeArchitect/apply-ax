@@ -97,6 +97,7 @@ export async function DELETE(req: NextRequest) {
 
   db.prepare("DELETE FROM evaluation_submits WHERE reviewer_id = ?").run(id);
   db.prepare("DELETE FROM evaluations WHERE reviewer_id = ?").run(id);
+  db.prepare("DELETE FROM reviewer_nda WHERE reviewer_id = ?").run(id);
   db.prepare("DELETE FROM reviewer_tokens WHERE reviewer_id = ?").run(id);
   db.prepare("DELETE FROM reviewers WHERE id = ?").run(id);
 
