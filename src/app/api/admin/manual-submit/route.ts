@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/session";
 import { getDb } from "@/lib/db";
 import { saveUpload, type StoredFile } from "@/lib/files";
 import { DOC_TYPES } from "@/lib/tasks";
-import { logAdminActivity } from "@/lib/activity";
 import {
   normalizeBizRegNo,
   isValidBizRegNo,
@@ -12,10 +10,12 @@ import { createCompany, getCompanyByBiz } from "@/lib/company";
 
 export const runtime = "nodejs";
 
+const SECRET = process.env.MANUAL_SUBMIT_SECRET || "";
+
 export async function POST(req: NextRequest) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ ok: false, message: "관리자 인증 필요" }, { status: 401 });
+  const authHeader = req.headers.get("x-submit-secret") || "";
+  if (!SECRET || authHeader !== SECRET) {
+    return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const form = await req.formData();
@@ -93,13 +93,6 @@ export async function POST(req: NextRequest) {
   });
 
   const submissionId = runTx();
-
-  logAdminActivity({
-    adminId: session.adminId,
-    username: session.username,
-    action: "manual_submit",
-    detail: `${companyName} (${bizRegNo}) 과제${taskId} / submission_id=${submissionId}`,
-  });
 
   return NextResponse.json({ ok: true, submissionId });
 }
